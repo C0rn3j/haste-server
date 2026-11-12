@@ -19,7 +19,7 @@ Most of the time I want to show you some text, it's coming from my current
 console session.  We should make it really easy to take code from the console
 and send it to people.
 
-`cat something | haste` # https://hastebin.com/1238193
+`cat something | haste` # https://hastebin.example.com/1238193
 
 You can even take this a step further, and cut out the last step of copying the
 URL with:
@@ -52,8 +52,8 @@ pastes.
 
 Haste can easily be installed behind your network, and it's all open source!
 
-* [haste-client](https://github.com/seejohnrun/haste-client)
-* [haste-server](https://github.com/seejohnrun/haste-server)
+* [haste-client](https://github.com/C0rn3j/haste-client)
+* [haste-server](https://github.com/C0rn3j/haste-server)
 
 ## Author
 

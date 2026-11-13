@@ -238,9 +238,9 @@ Authentication is handled automatically by [Google Cloud service account credent
 ### Amazon S3
 
 To use [Amazon S3](https://aws.amazon.com/s3/) as a storage system, you must
-install the `aws-sdk` package via npm:
+install the client package via npm:
 
-`npm install aws-sdk`
+`npm install --no-save --package-lock=false @aws-sdk/client-s3`
 
 Once you've done that, your config section should look like this:
 
@@ -253,7 +253,7 @@ Once you've done that, your config section should look like this:
 ```
 
 Authentication is handled automatically by the client. Check
-[Amazon's documentation](https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/setting-credentials-node.html)
+[Amazon's documentation](https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/setting-credentials-node.html)
 for more information. You will need to grant your role these permissions to
 your bucket:
 

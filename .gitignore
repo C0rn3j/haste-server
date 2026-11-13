@@ -5,3 +5,6 @@ node_modules
 data
 *.DS_Store
 docker-compose.override.yml
+
+# Generated from the npm dependency during installation
+/static/jquery.min.js

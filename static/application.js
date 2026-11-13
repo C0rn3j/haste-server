@@ -114,7 +114,7 @@ haste.prototype.setTitle = function(ext) {
 
 // Show a message box
 haste.prototype.showMessage = function(msg, cls) {
-  var msgBox = $('<li class="'+(cls || 'info')+'">'+msg+'</li>');
+  var msgBox = $('<li>').addClass(cls || 'info').text(msg);
   $('#messages').prepend(msgBox);
   setTimeout(function() {
     msgBox.slideUp('fast', function() { $(this).remove(); });

@@ -9,12 +9,9 @@ WORKDIR /usr/src/app
 
 COPY --chown=node:node . .
 
-RUN npm install && \
-    npm install redis@0.8.1 && \
-    npm install pg@8.11.3 && \
-    npm install memcached@2.2.2 && \
-    npm install @aws-sdk/client-s3 && \
-    npm install rethinkdbdash@2.3.31
+RUN npm ci --omit=dev && \
+    npm install --omit=dev --no-save --package-lock=false memcached rethinkdbdash @aws-sdk/client-s3 && \
+    npm cache clean --force
 
 ENV STORAGE_TYPE=memcached \
     STORAGE_HOST=127.0.0.1 \

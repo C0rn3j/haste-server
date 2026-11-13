@@ -1,0 +1,71 @@
+name: Docker smoke test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  paste-round-trip:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Build image
+        run: docker build --tag haste-server:ci .
+
+      - name: Start server
+        run: |
+          docker run --detach --name haste-server-ci \
+            --publish 127.0.0.1:7777:7777 \
+            --env STORAGE_TYPE=file \
+            haste-server:ci
+
+      - name: Wait for server
+        shell: bash
+        run: |
+          for attempt in {1..30}; do
+            if curl --fail --silent --max-time 2 http://127.0.0.1:7777/ > /dev/null; then
+              exit 0
+            fi
+            if [ "$(docker inspect --format '{{.State.Running}}' haste-server-ci)" != true ]; then
+              echo 'Server container exited before becoming ready.' >&2
+              exit 1
+            fi
+            sleep 1
+          done
+          echo 'Server did not become ready within 30 attempts.' >&2
+          exit 1
+
+      - name: Upload a paste and read it back
+        shell: bash
+        run: |
+          printf 'Docker paste round trip\nUTF-8: café €\n<script>alert("test")</script>\n' > expected.txt
+          curl --fail-with-body --silent --show-error --max-time 10 \
+            --header 'Content-Type: text/plain; charset=utf-8' \
+            --data-binary @expected.txt \
+            http://127.0.0.1:7777/documents > created.json
+          key=$(jq --exit-status --raw-output '.key | select(type == "string") | select(test("^[A-Za-z0-9]+$"))' created.json)
+
+          curl --fail-with-body --silent --show-error --max-time 10 \
+            "http://127.0.0.1:7777/raw/$key" > actual.txt
+          cmp expected.txt actual.txt
+
+          curl --fail-with-body --silent --show-error --max-time 10 \
+            "http://127.0.0.1:7777/documents/$key" > document.json
+          jq --exit-status --arg key "$key" --rawfile expected expected.txt \
+            '.key == $key and .data == $expected' document.json
+
+      - name: Show container logs
+        if: always()
+        run: docker logs haste-server-ci
+
+      - name: Remove container
+        if: always()
+        run: docker rm --force haste-server-ci

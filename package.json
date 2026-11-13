@@ -35,6 +35,8 @@
   },
   "files": [
     "server.js",
+    "config.js",
+    "about.md",
     "lib",
     "static",
     "scripts"

@@ -291,7 +291,7 @@ docker run --name haste-server-container --env STORAGE_TYPE=redis --env STORAGE_
 
 ### Use docker-compose example
 
-There is an example `docker-compose.yml` which runs haste-server together with memcached
+There is an example `docker-compose.yaml` which runs haste-server together with memcached
 
 ```bash
 docker-compose up

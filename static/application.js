@@ -99,10 +99,10 @@ var haste = function(appName, options) {
   this.options = options;
   this.configureShortcuts();
   this.configureButtons();
-  // If twitter is disabled, hide the button
-  if (!options.twitter) {
-    $('#box2 .twitter').hide();
-  };
+  // If kofi is disabled, hide the button
+  if (!options.kofi) {
+    $('#key .kofi').hide();
+  }
   this.baseUrl = options.baseUrl || '/';
 };
 
@@ -123,12 +123,12 @@ haste.prototype.showMessage = function(msg, cls) {
 
 // Show the light key
 haste.prototype.lightKey = function() {
-  this.configureKey(['new', 'save']);
+  this.configureKey(['new', 'save', 'kofi']);
 };
 
 // Show the full key
 haste.prototype.fullKey = function() {
-  this.configureKey(['new', 'duplicate', 'twitter', 'raw']);
+  this.configureKey(['new', 'duplicate', 'raw', 'kofi']);
 };
 
 // Set the key up for certain things to be enabled
@@ -309,15 +309,8 @@ haste.prototype.configureButtons = function() {
       }
     },
     {
-      $where: $('#box2 .twitter'),
-      label: 'Twitter',
-      shortcut: function(evt) {
-        return _this.options.twitter && _this.doc.locked && evt.shiftKey && evt.ctrlKey && evt.keyCode == 84;
-      },
-      shortcutDescription: 'control + shift + t',
-      action: function() {
-        window.open('https://twitter.com/share?url=' + encodeURI(window.location.href));
-      }
+      $where: $('#box2 .kofi'),
+      label: 'Support on Ko-fi'
     }
   ];
   for (var i = 0; i < this.buttons.length; i++) {
@@ -327,12 +320,14 @@ haste.prototype.configureButtons = function() {
 
 haste.prototype.configureButton = function(options) {
   // Handle the click action
-  options.$where.click(function(evt) {
-    evt.preventDefault();
-    if (!options.clickDisabled && $(this).hasClass('enabled')) {
-      options.action();
-    }
-  });
+  if (options.action) {
+    options.$where.click(function(evt) {
+      evt.preventDefault();
+      if (!options.clickDisabled && $(this).hasClass('enabled')) {
+        options.action();
+      }
+    });
+  }
   // Show the label
   options.$where.mouseenter(function() {
     $('#box3 .label').text(options.label);

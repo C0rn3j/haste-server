@@ -91,6 +91,7 @@ textarea {
 	height: 37px;
 	display: inline-block;
 	position: relative;
+	vertical-align: top;
 }
 
 #box2 .link embed {
@@ -149,9 +150,29 @@ textarea {
 #box2 .function.enabled.raw { background-position: -116px center; }
 #box2 .function.enabled.raw:hover { background-position: -116px bottom; }
 
-#box2 .function.twitter { background-position: -153px top; }
-#box2 .function.enabled.twitter { background-position: -153px center; }
-#box2 .function.enabled.twitter:hover { background-position: -153px bottom; }
+#box2 .function.kofi {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	vertical-align: top;
+	background: none;
+	color: #8fbcc8;
+	text-decoration: none;
+}
+
+#box2 .kofi svg {
+	width: 20px;
+	height: 20px;
+}
+
+#box2 .function.kofi:hover {
+	color: #fff;
+}
+
+#box2 .kofi:focus-visible {
+	outline: 2px solid #fff;
+	outline-offset: -4px;
+}
 #box2 .button-picture{ border-width: 0; font-size: inherit; }
 
 #messages {
@@ -172,4 +193,3 @@ textarea {
 #messages li.error {
 	background:rgba(102,8,0,0.8);
 }
-

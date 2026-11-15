@@ -124,7 +124,13 @@ or post.
 
 All of which are optional except `type` with very logical default values.
 
-If your Redis server is configured for password authentification, use the `password` field.
+If your Redis server is configured for password authentication, use the `password` field.
+
+For Redis ACL authentication, also set `user`.
+
+Alternatively, set `storage.url` or `REDISTOGO_URL` env var to a `redis://user:password@host:port/database` URL (`rediss://` for TLS).
+
+URL definition takes precedence over the configured connection settings.
 
 ### Postgres
 
@@ -311,9 +317,9 @@ Here is a list of all the environment variables
 |      STORAGE_HOST      |   127.0.0.1   |                 Storage host. Applicable for types: memcached, redis, postgres, and rethinkdb                 |
 |      STORAGE_PORT      |     11211     |           Port on the storage host. Applicable for types: memcached, redis, postgres, and rethinkdb           |
 | STORAGE_EXPIRE_SECONDS |    2592000    | Number of seconds to expire keys in. Applicable for types. Redis, postgres, memcached. `expire` option to the |
-|       STORAGE_DB       |       2       |                    The name of the database. Applicable for redis, postgres, and rethinkdb                    |
-|    STORAGE_PASSWORD    |               |                       Password for database. Applicable for redis, postges, rethinkdb .                       |
-|    STORAGE_USERNAME    |               |                           Database username. Applicable for postgres, and rethinkdb                           |
+|       STORAGE_DB       |       2       |                    The name of the database. Applicable for redis, postgres, rethinkdb                        |
+|    STORAGE_PASSWORD    |               |                       Password for database. Applicable for redis, postrges, rethinkdb                        |
+|    STORAGE_USERNAME    |               |                           Database username. Applicable for redis, postgres, rethinkdb                        |
 |   STORAGE_AWS_BUCKET   |               |                          Applicable for amazon-s3. This is the name of the S3 bucket                          |
 |   STORAGE_AWS_REGION   |               |                      Applicable for amazon-s3. The region in which the bucket is located                      |
 |    STORAGE_FILEPATH    |               |                            Path to file to save data to. Applicable for type file                             |

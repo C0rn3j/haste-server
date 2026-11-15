@@ -1,24 +1,24 @@
 #!/usr/bin/env node
 
-var http = require('http');
-var fs = require('fs');
-var path = require('path');
+import http from 'node:http';
+import fs from 'node:fs';
+import path from 'node:path';
 
-var uglify = require('uglify-js');
-var winston = require('winston');
-var connect = require('connect');
-var route = require('connect-route');
-var connect_st = require('st');
-var connect_rate_limit = require('connect-ratelimit');
+import uglify from 'uglify-js';
+import winston from 'winston';
+import connect from 'connect';
+import route from 'connect-route';
+import connect_st from 'st';
+import connect_rate_limit from 'connect-ratelimit';
 
-var DocumentHandler = require('./lib/document_handler');
+import DocumentHandler from './lib/document_handler.js';
 
 // Load the configuration and set some defaults
 const configPath = process.argv.length <= 2
-  ? path.join(__dirname, 'config.js')
+  ? path.join(import.meta.dirname, 'config.js')
   : path.resolve(process.argv[2]);
 const configDirectory = path.dirname(configPath);
-const staticDirectory = path.join(__dirname, 'static');
+const staticDirectory = path.join(import.meta.dirname, 'static');
 const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
 config.port = process.env.PORT || config.port || 7777;
 config.host = process.env.HOST || config.host || 'localhost';
@@ -58,12 +58,12 @@ if (!config.storage.type) {
 var Store, preferredStore;
 
 if (process.env.REDISTOGO_URL && config.storage.type === 'redis') {
-  var redisClient = require('redis').createClient({ url: process.env.REDISTOGO_URL });
-  Store = require('./lib/document_stores/redis');
+  var redisClient = (await import('redis')).createClient({ url: process.env.REDISTOGO_URL });
+  Store = (await import('./lib/document_stores/redis.js')).default;
   preferredStore = new Store(config.storage, redisClient);
 }
 else {
-  Store = require('./lib/document_stores/' + config.storage.type);
+  Store = (await import('./lib/document_stores/' + config.storage.type + '.js')).default;
   preferredStore = new Store(config.storage);
 }
 
@@ -106,7 +106,7 @@ pwOptions.type = pwOptions.type || 'random';
 if (pwOptions.path) {
   pwOptions.path = path.resolve(configDirectory, pwOptions.path);
 }
-var gen = require('./lib/key_generators/' + pwOptions.type);
+var gen = (await import('./lib/key_generators/' + pwOptions.type + '.js')).default;
 var keyGenerator = new gen(pwOptions);
 
 // Configure the document handler

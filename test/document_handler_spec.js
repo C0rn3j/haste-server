@@ -1,9 +1,9 @@
 /* global describe, it */
 
-var assert = require('assert');
+import assert from 'node:assert';
 
-var DocumentHandler = require('../lib/document_handler');
-var Generator = require('../lib/key_generators/random');
+import DocumentHandler from '../lib/document_handler.js';
+import Generator from '../lib/key_generators/random.js';
 
 describe('document_handler', function() {
 

@@ -1,10 +1,10 @@
 /* global describe, it */
 
-const assert = require('assert');
+import assert from 'node:assert';
 
-const fs = require('fs');
+import fs from 'node:fs';
 
-const Generator = require('../../lib/key_generators/dictionary');
+import Generator from '../../lib/key_generators/dictionary.js';
 
 describe('DictionaryGenerator', function() {
   describe('options', function() {

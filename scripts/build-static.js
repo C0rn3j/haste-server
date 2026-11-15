@@ -1,9 +1,10 @@
-const fs = require('fs');
-const path = require('path');
-const uglify = require('uglify-js');
+import fs from 'node:fs';
+import path from 'node:path';
+import uglify from 'uglify-js';
+import { createRequire } from 'node:module';
 
-const directory = path.join(__dirname, '..', 'static');
-const jquery = path.join(path.dirname(require.resolve('jquery')), 'jquery.min.js');
+const directory = path.join(import.meta.dirname, '..', 'static');
+const jquery = path.join(path.dirname(createRequire(import.meta.url).resolve('jquery')), 'jquery.min.js');
 fs.copyFileSync(jquery, path.join(directory, 'jquery.min.js'));
 
 for (const file of fs.readdirSync(directory)) {

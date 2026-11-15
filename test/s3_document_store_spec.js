@@ -1,16 +1,16 @@
 /* global describe, it, before */
-const assert = require('assert');
+import assert from 'node:assert';
 let Store;
 
 describe('S3 document store', function() {
-  before(function() {
+  before(async function() {
     try {
-      require.resolve('@aws-sdk/client-s3');
+      import.meta.resolve('@aws-sdk/client-s3');
     } catch (error) {
-      if (error.code !== 'MODULE_NOT_FOUND') { throw error; }
+      if (error.code !== 'ERR_MODULE_NOT_FOUND') { throw error; }
       this.skip();
     }
-    Store = require('../lib/document_stores/amazon-s3');
+    Store = (await import('../lib/document_stores/amazon-s3.js')).default;
   });
   it('decodes SDK v3 streaming bodies', function(done) {
     const store = new Store({bucket: 'test', region: 'eu-central-1'});

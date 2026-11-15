@@ -1,9 +1,9 @@
 /* global it, describe, beforeEach, afterEach */
-const assert = require('assert');
-const { randomUUID } = require('crypto');
-const redis = require('redis');
-const winston = require('winston');
-const Store = require('../lib/document_stores/redis');
+import assert from 'node:assert';
+import { randomUUID } from 'node:crypto';
+import redis from 'redis';
+import winston from 'winston';
+import Store from '../lib/document_stores/redis.js';
 
 winston.configure({ transports: [], silent: true });
 

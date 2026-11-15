@@ -3,7 +3,7 @@
 var assert = require('assert');
 
 var winston = require('winston');
-winston.remove(winston.transports.Console);
+winston.configure({ transports: [], silent: true });
 
 var RedisDocumentStore = require('../lib/document_stores/redis');
 

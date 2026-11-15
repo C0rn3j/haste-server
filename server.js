@@ -24,21 +24,27 @@ config.port = process.env.PORT || config.port || 7777;
 config.host = process.env.HOST || config.host || 'localhost';
 
 // Set up the logger
-if (config.logging) {
-  try {
-    winston.remove(winston.transports.Console);
-  } catch(e) {
-    /* was not present */
+const transports = (config.logging || [{ type: 'Console' }]).map(detail => {
+  const { type, colorize, json, timestamp, ...options } = detail;
+  const formats = [winston.format.errors({ stack: true })];
+  if (timestamp) {
+    formats.push(winston.format.timestamp({
+      format: typeof timestamp === 'function' ? timestamp : undefined
+    }));
   }
+  if (json === true || (json === undefined && type !== 'Console')) {
+    formats.push(winston.format.json());
+  } else {
+    if (colorize) { formats.push(winston.format.colorize()); }
+    formats.push(winston.format.simple());
+  }
+  return new winston.transports[type]({
+    ...options,
+    format: winston.format.combine(...formats)
+  });
+});
 
-  var detail, type;
-  for (var i = 0; i < config.logging.length; i++) {
-    detail = config.logging[i];
-    type = detail.type;
-    delete detail.type;
-    winston.add(winston.transports[type], detail);
-  }
-}
+winston.configure({ transports, silent: transports.length === 0 });
 
 // build the store from the config on-demand - so that we don't load it
 // for statics

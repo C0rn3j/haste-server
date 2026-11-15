@@ -350,14 +350,14 @@ Here is a list of all the environment variables
 
 |                 Name                 |             Default value             |                                       Description                                        |
 | :----------------------------------: | :-----------------------------------: | :--------------------------------------------------------------------------------------: |
-|   RATELIMITS_NORMAL_TOTAL_REQUESTS   |                  500                  | By default anyone uncategorized will be subject to 500 requests in the defined timespan. |
-| RATELIMITS_NORMAL_EVERY_MILLISECONDS |                 60000                 |             The timespan to allow the total requests for uncategorized users             |
-| RATELIMITS_WHITELIST_TOTAL_REQUESTS  |                                       |      By default client names in the whitelist will not have their requests limited.      |
-|  RATELIMITS_WHITELIST_EVERY_SECONDS  |                                       |      By default client names in the whitelist will not have their requests limited.      |
-|         RATELIMITS_WHITELIST         | example1.whitelist,example2.whitelist |           Comma separated list of the clients which are in the whitelist pool            |
-| RATELIMITS_BLACKLIST_TOTAL_REQUESTS  |                                       |    By default client names in the blacklist will be subject to 0 requests per hours.     |
-|  RATELIMITS_BLACKLIST_EVERY_SECONDS  |                                       |     By default client names in the blacklist will be subject to 0 requests per hours     |
-|         RATELIMITS_BLACKLIST         | example1.blacklist,example2.blacklist |           Comma separated list of the clients which are in the blacklistpool.            |
+| RATE_LIMITS_NORMAL_TOTAL_REQUESTS    | 500                                   | By default anyone uncategorized will be subject to 500 requests in the defined timespan. |
+| RATE_LIMITS_NORMAL_EVERY_SECONDS     | 60                                    | The timespan to allow the total requests for uncategorized users                         |
+| RATE_LIMITS_WHITELIST_TOTAL_REQUESTS | 5000                                  | By default client names in the whitelist will not have their requests limited.           |
+| RATE_LIMITS_WHITELIST_EVERY_SECONDS  | 3600                                  | By default client names in the whitelist will not have their requests limited.           |
+| RATE_LIMITS_WHITELIST                | example1.whitelist,example2.whitelist | Comma separated list of the clients which are in the whitelist pool                      |
+| RATE_LIMITS_BLACKLIST_TOTAL_REQUESTS | 0                                     | By default client names in the blacklist will be subject to 0 requests per hours.        |
+| RATE_LIMITS_BLACKLIST_EVERY_SECONDS  | 0.001                                 | By default client names in the blacklist will be subject to 0 requests per hours         |
+| RATE_LIMITS_BLACKLIST                | example1.blacklist,example2.blacklist | Comma separated list of the clients which are in the blacklistpool.                      |
 
 ## Author
 

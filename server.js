@@ -6,10 +6,9 @@ import path from 'node:path';
 
 import uglify from 'uglify-js';
 import winston from 'winston';
-import connect from 'connect';
-import route from 'connect-route';
+import express from 'express';
 import connect_st from 'st';
-import connect_rate_limit from 'connect-ratelimit';
+import { rateLimit } from 'express-rate-limit';
 
 import DocumentHandler from './lib/document_handler.js';
 
@@ -117,41 +116,67 @@ var documentHandler = new DocumentHandler({
   keyGenerator: keyGenerator
 });
 
-var app = connect();
+var app = express();
+app.set('case sensitive routing', true);
 
 // Rate limit all requests
 if (config.rateLimits) {
-  config.rateLimits.end = true;
-  app.use(connect_rate_limit(config.rateLimits));
+  const options = config.rateLimits;
+  const categories = options.categories || options.catagories || {};
+  const defaults = {
+    normal: { totalRequests: 500, every: 60 * 60 * 1000 },
+    whitelist: { totalRequests: 5000, every: 60 * 60 * 1000 },
+    blacklist: { totalRequests: 0, every: 1 }
+  };
+  const clientName = request => request.headers['x-forwarded-for'] || request.socket.remoteAddress;
+  const limiters = {};
+  for (const type of Object.keys(defaults)) {
+    const category = { ...defaults[type], ...categories[type] };
+    limiters[type] = rateLimit({
+      windowMs: Math.max(1, category.every),
+      limit: category.totalRequests,
+      keyGenerator: clientName,
+      // A zero limit intentionally blocks every request in this category
+      validate: { limit: false },
+      handler: (request, response) => {
+        response.writeHead(429, { 'content-type': 'text/plain; charset=utf-8' });
+        response.end('Rate limit exceded.');
+      }
+    });
+  }
+  app.use(function(request, response, next) {
+    const name = clientName(request);
+    const type = (options.whitelist || []).includes(name) ? 'whitelist'
+      : (options.blacklist || []).includes(name) ? 'blacklist' : 'normal';
+    return limiters[type](request, response, next);
+  });
 }
 
 // first look at API calls
-app.use(route(function(router) {
-  // get raw documents - support getting with extension
+// get raw documents - support getting with extension
 
-  router.get('/raw/:id', function(request, response) {
-    return documentHandler.handleRawGet(request, response, config);
-  });
+app.get('/raw/:id', function(request, response) {
+  return documentHandler.handleRawGet(request, response, config);
+});
 
-  router.head('/raw/:id', function(request, response) {
-    return documentHandler.handleRawGet(request, response, config);
-  });
+app.head('/raw/:id', function(request, response) {
+  return documentHandler.handleRawGet(request, response, config);
+});
 
-  // add documents
+// add documents
 
-  router.post('/documents', function(request, response) {
-    return documentHandler.handlePost(request, response);
-  });
+app.post('/documents', function(request, response) {
+  return documentHandler.handlePost(request, response);
+});
 
-  // get documents
-  router.get('/documents/:id', function(request, response) {
-    return documentHandler.handleGet(request, response, config);
-  });
+// get documents
+app.get('/documents/:id', function(request, response) {
+  return documentHandler.handleGet(request, response, config);
+});
 
-  router.head('/documents/:id', function(request, response) {
-    return documentHandler.handleGet(request, response, config);
-  });
-}));
+app.head('/documents/:id', function(request, response) {
+  return documentHandler.handleGet(request, response, config);
+});
 
 // Otherwise, try to match static files
 app.use(connect_st({
@@ -163,12 +188,10 @@ app.use(connect_st({
 
 // Then we can loop back - and everything else should be a token,
 // so route it back to /
-app.use(route(function(router) {
-  router.get('/:id', function(request, response, next) {
-    request.sturl = '/';
-    next();
-  });
-}));
+app.get('/:id', function(request, response, next) {
+  request.sturl = '/';
+  next();
+});
 
 // And match index
 app.use(connect_st({

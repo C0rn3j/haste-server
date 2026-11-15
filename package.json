@@ -16,9 +16,8 @@
   "main": "haste",
   "dependencies": {
     "busboy": "^1.6.0",
-    "connect": "^3.7.0",
-    "connect-ratelimit": "^0.0.7",
-    "connect-route": "^0.1.5",
+    "express": "^5.3.0",
+    "express-rate-limit": "^8.7.4",
     "jquery": "^4.0.0",
     "pg": "^8.23.1",
     "redis": "^6.3.1",

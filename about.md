@@ -24,17 +24,17 @@ and send it to people.
 You can even take this a step further, and cut out the last step of copying the
 URL with:
 
-* osx: `cat something | haste | pbcopy`
-* linux: `cat something | haste | xsel -b`
-* windows: check out [WinHaste](https://github.com/ajryan/WinHaste)
+* macOS: `cat something | haste | pbcopy`
+* Linux: `cat something | haste | xsel -b`
+* Windows: check out [WinHaste](https://github.com/ajryan/WinHaste)
 
 After running that, the STDOUT output of `cat something` will show up at a URL
 which has been conveniently copied to your clipboard.
 
 That's all there is to that, and you can install it with `gem install haste`
 right now.
-  * osx: you will need to have an up to date version of Xcode
-  * linux: you will need to have rubygems and ruby-devel installed
+  * macOS: you will need to have an up to date version of Xcode
+  * Linux: you will need to have rubygems and ruby-devel installed
 
 ## Duration
 

@@ -10,8 +10,39 @@ permissions:
 
 jobs:
   paste-round-trip:
+    name: Paste round trip (${{ matrix.backend }})
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - backend: file
+            service_image: ''
+            service_options: []
+            service_command: []
+            storage_env:
+              STORAGE_TYPE: file
+              STORAGE_EXPIRE_SECONDS: '0'
+          - backend: redis
+            service_image: redis:latest
+            service_options:
+              - --health-cmd
+              - redis-cli -a ci-password --no-auth-warning ping
+              - --health-interval=1s
+              - --health-timeout=3s
+              - --health-retries=30
+            service_command:
+              - redis-server
+              - --requirepass
+              - ci-password
+            storage_env:
+              STORAGE_TYPE: redis
+              STORAGE_HOST: haste-storage-ci
+              STORAGE_PORT: '6379'
+              STORAGE_DB: '2'
+              STORAGE_PASSWORD: ci-password
+              STORAGE_EXPIRE_SECONDS: '60'
     steps:
       - uses: actions/checkout@v7
         with:
@@ -20,28 +51,76 @@ jobs:
       - name: Build image
         run: docker build --tag haste-server:ci .
 
-      - name: Start server
+      - name: Create test network
+        run: docker network create haste-ci
+
+      - name: Start backend service
+        if: matrix.service_image != ''
+        shell: bash
+        env:
+          SERVICE_IMAGE: ${{ matrix.service_image }}
+          SERVICE_OPTIONS: ${{ toJSON(matrix.service_options) }}
+          SERVICE_COMMAND: ${{ toJSON(matrix.service_command) }}
         run: |
-          docker run --detach --name haste-server-ci \
-            --publish 127.0.0.1:7777:7777 \
-            --env STORAGE_TYPE=file \
+          mapfile -t options < <(jq -r '.[]' <<< "${SERVICE_OPTIONS}")
+          mapfile -t command < <(jq -r '.[]' <<< "${SERVICE_COMMAND}")
+          docker run --detach --name haste-storage-ci --network haste-ci \
+            "${options[@]}" "${SERVICE_IMAGE}" "${command[@]}"
+          for attempt in {1..30}; do
+            if [ "$(docker inspect --format '{{.State.Running}}' haste-storage-ci)" != true ]; then
+              echo 'Backend service exited before becoming ready.' >&2
+              exit 1
+            fi
+            status=$(docker inspect --format '{{.State.Health.Status}}' haste-storage-ci)
+            if [ "${status}" = healthy ]; then
+              exit 0
+            fi
+            if [ "${status}" = unhealthy ]; then
+              break
+            fi
+            echo "Waiting for backend: ${status} (${attempt}/30)"
+            sleep 1
+          done
+          echo 'Backend service did not become healthy.' >&2
+          exit 1
+
+      - name: Start server
+        shell: bash
+        env:
+          STORAGE_ENV: ${{ toJSON(matrix.storage_env) }}
+        run: |
+          jq -r 'to_entries[] | "\(.key)=\(.value)"' <<< "${STORAGE_ENV}" > "${RUNNER_TEMP}/storage.env"
+          docker run --detach --name haste-server-ci --network haste-ci \
+            --publish 127.0.0.1::7777 \
+            --env-file "${RUNNER_TEMP}/storage.env" \
             haste-server:ci
+          port=$(docker inspect --format '{{(index (index .NetworkSettings.Ports "7777/tcp") 0).HostPort}}' haste-server-ci)
+          echo "HASTE_URL=http://127.0.0.1:${port}" >> "${GITHUB_ENV}"
 
       - name: Wait for server
         shell: bash
         run: |
           for attempt in {1..30}; do
-            if curl --fail --silent --max-time 2 http://127.0.0.1:7777/ > /dev/null; then
+            if curl --fail --silent --max-time 2 "${HASTE_URL}/" > /dev/null; then
               exit 0
             fi
             if [ "$(docker inspect --format '{{.State.Running}}' haste-server-ci)" != true ]; then
               echo 'Server container exited before becoming ready.' >&2
               exit 1
             fi
+            echo "Waiting for server (${attempt}/30)"
             sleep 1
           done
           echo 'Server did not become ready within 30 attempts.' >&2
           exit 1
+
+      - name: Verify selected backend
+        env:
+          BACKEND: ${{ matrix.backend }}
+        run: |
+          docker exec haste-server-ci node -e \
+            'const fs = require("fs"); const config = JSON.parse(fs.readFileSync("config.js", "utf8")); require("assert").strictEqual(config.storage.type, process.argv[1]);' \
+            "${BACKEND}"
 
       - name: Upload a paste and read it back
         shell: bash
@@ -50,22 +129,23 @@ jobs:
           curl --fail-with-body --silent --show-error --max-time 10 \
             --header 'Content-Type: text/plain; charset=utf-8' \
             --data-binary @expected.txt \
-            http://127.0.0.1:7777/documents > created.json
+            "${HASTE_URL}/documents" > created.json
           key=$(jq --exit-status --raw-output '.key | select(type == "string") | select(test("^[A-Za-z0-9]+$"))' created.json)
 
           curl --fail-with-body --silent --show-error --max-time 10 \
-            "http://127.0.0.1:7777/raw/$key" > actual.txt
+            "${HASTE_URL}/raw/${key}" > actual.txt
           cmp expected.txt actual.txt
 
           curl --fail-with-body --silent --show-error --max-time 10 \
-            "http://127.0.0.1:7777/documents/$key" > document.json
-          jq --exit-status --arg key "$key" --rawfile expected expected.txt \
+            "${HASTE_URL}/documents/${key}" > document.json
+          jq --exit-status --arg key "${key}" --rawfile expected expected.txt \
             '.key == $key and .data == $expected' document.json
 
       - name: Show container logs
         if: always()
-        run: docker logs haste-server-ci
-
-      - name: Remove container
-        if: always()
-        run: docker rm --force haste-server-ci
+        run: |
+          for container in haste-server-ci haste-storage-ci; do
+            if docker container inspect "${container}" > /dev/null 2>&1; then
+              docker logs "${container}"
+            fi
+          done

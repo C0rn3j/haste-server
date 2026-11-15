@@ -2,6 +2,7 @@
 
 var http = require('http');
 var fs = require('fs');
+var path = require('path');
 
 var uglify = require('uglify-js');
 var winston = require('winston');
@@ -13,7 +14,11 @@ var connect_rate_limit = require('connect-ratelimit');
 var DocumentHandler = require('./lib/document_handler');
 
 // Load the configuration and set some defaults
-const configPath = process.argv.length <= 2 ? 'config.js' : process.argv[2];
+const configPath = process.argv.length <= 2
+  ? path.join(__dirname, 'config.js')
+  : path.resolve(process.argv[2]);
+const configDirectory = path.dirname(configPath);
+const staticDirectory = path.join(__dirname, 'static');
 const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
 config.port = process.env.PORT || config.port || 7777;
 config.host = process.env.HOST || config.host || 'localhost';
@@ -58,38 +63,43 @@ else {
 
 // Compress the static javascript assets
 if (config.recompressStaticAssets) {
-  var list = fs.readdirSync('./static');
+  var list = fs.readdirSync(staticDirectory);
   for (var j = 0; j < list.length; j++) {
     var item = list[j];
     if ((item.indexOf('.js') === item.length - 3) && (item.indexOf('.min.js') === -1)) {
       var dest = item.substring(0, item.length - 3) + '.min' + item.substring(item.length - 3);
-      var orig_code = fs.readFileSync('./static/' + item, 'utf8');
+      var orig_code = fs.readFileSync(path.join(staticDirectory, item), 'utf8');
 
-      fs.writeFileSync('./static/' + dest, uglify.minify(orig_code).code, 'utf8');
+      var compressed = uglify.minify(orig_code);
+      if (compressed.error) { throw compressed.error; }
+      fs.writeFileSync(path.join(staticDirectory, dest), compressed.code, 'utf8');
       winston.info('compressed ' + item + ' into ' + dest);
     }
   }
 }
 
 // Send the static documents into the preferred store, skipping expirations
-var path, data;
+var documentPath, data;
 for (var name in config.documents) {
-  path = config.documents[name];
-  data = fs.readFileSync(path, 'utf8');
-  winston.info('loading static document', { name: name, path: path });
+  documentPath = path.resolve(configDirectory, config.documents[name]);
+  data = fs.readFileSync(documentPath, 'utf8');
+  winston.info('loading static document', { name: name, path: documentPath });
   if (data) {
     preferredStore.set(name, data, function(cb) {
       winston.debug('loaded static document', { success: cb });
     }, true);
   }
   else {
-    winston.warn('failed to load static document', { name: name, path: path });
+    winston.warn('failed to load static document', { name: name, path: documentPath });
   }
 }
 
 // Pick up a key generator
 var pwOptions = config.keyGenerator || {};
 pwOptions.type = pwOptions.type || 'random';
+if (pwOptions.path) {
+  pwOptions.path = path.resolve(configDirectory, pwOptions.path);
+}
 var gen = require('./lib/key_generators/' + pwOptions.type);
 var keyGenerator = new gen(pwOptions);
 
@@ -139,7 +149,7 @@ app.use(route(function(router) {
 
 // Otherwise, try to match static files
 app.use(connect_st({
-  path: __dirname + '/static',
+  path: staticDirectory,
   content: { maxAge: config.staticMaxAge },
   passthrough: true,
   index: false
@@ -156,7 +166,7 @@ app.use(route(function(router) {
 
 // And match index
 app.use(connect_st({
-  path: __dirname + '/static',
+  path: staticDirectory,
   content: { maxAge: config.staticMaxAge },
   index: 'index.html'
 }));

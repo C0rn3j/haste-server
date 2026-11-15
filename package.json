@@ -1,19 +1,27 @@
 {
   "name": "haste",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Private Pastebin Server",
+  "description": "A pastebin server",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/C0rn3j/haste-server.git"
+  },
+  "homepage": "https://github.com/C0rn3j/haste-server#readme",
+  "bugs": {
+    "url": "https://github.com/C0rn3j/haste-server/issues"
+  },
   "keywords": [
     "paste",
     "pastebin"
   ],
   "author": {
-    "name": "John Crepezzi",
-    "email": "john.crepezzi@gmail.com",
-    "url": "http://seejohncode.com/"
+    "name": "Martin Rys",
+    "email": "rysDOTrsSLASHcontact@fakeemail.donotuse",
+    "url": "https://rys.rs/"
   },
-  "main": "haste",
   "dependencies": {
     "busboy": "^1.6.0",
     "express": "^5.3.0",

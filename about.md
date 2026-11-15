@@ -43,8 +43,8 @@ and without notice.
 
 ## Privacy
 
-While the contents of hastebin.com are not directly crawled by any search robot
-that obeys "robots.txt", there should be no great expectation of privacy.  Post
+While the contents of Haste are not directly crawled by any search robot
+that obeys `robots.txt`, there should be no great expectation of privacy.  Post
 things at your own risk. Not responsible for any loss of data or removed
 pastes.
 
@@ -57,5 +57,6 @@ Haste can easily be installed behind your network, and it's all open source!
 
 ## Author
 
-Code by John Crepezzi <john.crepezzi@gmail.com>
+Code by Martin Rys <rys.rs/contact>
+Original code by John Crepezzi <john.crepezzi@gmail.com>
 Key Design by Brian Dawson <bridawson@gmail.com>

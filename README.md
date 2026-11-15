@@ -19,12 +19,6 @@ to do things like:
 which will output a URL to share containing the contents of `cat something`'s
 STDOUT.  Check the README there for more details and usages.
 
-## Tested Browsers
-
-* Firefox 8
-* Chrome 17
-* Safari 5.3
-
 ## Installation
 
 1.  Download the package, and expand it
